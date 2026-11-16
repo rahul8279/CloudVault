@@ -1,0 +1,48 @@
+import type { CloudFile } from "../../types/file.types";
+
+export const recentFiles: CloudFile[] = [
+  {
+    id: "file-1",
+    name: "Project Proposal.pdf",
+    size: 2_516_582,
+    mimeType: "application/pdf",
+    createdAt: "2026-11-14T09:00:00.000Z",
+    updatedAt: "2026-11-14T09:00:00.000Z",
+    isStarred: false,
+    deletedAt: null,
+    parentDirectoryId: null,
+  },
+  {
+    id: "file-2",
+    name: "Profile Photo.png",
+    size: 860_160,
+    mimeType: "image/png",
+    createdAt: "2026-11-13T09:00:00.000Z",
+    updatedAt: "2026-11-13T09:00:00.000Z",
+    isStarred: false,
+    deletedAt: null,
+    parentDirectoryId: null,
+  },
+  {
+    id: "file-3",
+    name: "Budget.xlsx",
+    size: 1_258_291,
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    createdAt: "2026-11-12T09:00:00.000Z",
+    updatedAt: "2026-11-12T09:00:00.000Z",
+    isStarred: true,
+    deletedAt: null,
+    parentDirectoryId: null,
+  },
+  {
+    id: "file-4",
+    name: "Demo Video.mp4",
+    size: 47_185_920,
+    mimeType: "video/mp4",
+    createdAt: "2026-11-11T09:00:00.000Z",
+    updatedAt: "2026-11-11T09:00:00.000Z",
+    isStarred: false,
+    deletedAt: null,
+    parentDirectoryId: null,
+  },
+];

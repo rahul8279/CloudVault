@@ -3,7 +3,14 @@ import { z } from "zod";
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535),
+  MONGODB_URI: z.string().min(1, "MongoDB URI is required"),
+  CLIENT_ORIGIN: z.url(),
+JWT_SECRET: z.string().regex(
+  /^[0-9a-fA-F]{64}$/,
+  "JWT_SECRET must be a 64-character hexadecimal secret"
+),
 
+JWT_EXPIRES_IN: z.literal("15m"),
   NODE_ENV: z.enum([
     "development",
     "production",

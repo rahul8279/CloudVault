@@ -16,6 +16,9 @@ JWT_EXPIRES_IN: z.literal("15m"),
     "production",
     "test"
   ]),
+  AWS_REGION: z.string().min(1, "AWS region is required"),
+
+S3_BUCKET: z.string().min(3, "S3 bucket name is required"),
 });
 
 const result = envSchema.safeParse(process.env);

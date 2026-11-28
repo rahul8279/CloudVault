@@ -1,14 +1,16 @@
-
 import { isObjectIdOrHexString, Types } from "mongoose";
 import Folder from "./folder.model.js";
 import User from "../users/user.model.js";
-import type { CreateFolderInput, ListFoldersQuery, MoveFolderInput, RenameFolderInput } from "./folder.validation.js";
+import type {
+  CreateFolderInput,
+  ListFoldersQuery,
+  MoveFolderInput,
+  RenameFolderInput,
+} from "./folder.validation.js";
 import { AppError } from "../../utils/app-error.js";
+import File from "../files/file.model.js";
 
-export async function createFolder(
-  userId: string,
-  input: CreateFolderInput
-) {
+export async function createFolder(userId: string, input: CreateFolderInput) {
   // 1. Validate the authenticated user ID
   if (!isObjectIdOrHexString(userId)) {
     throw new AppError(401, "Authentication required");
@@ -60,14 +62,9 @@ export async function createFolder(
       parentId: folder.parentId?.toString() ?? null,
       createdAt: folder.createdAt,
       updatedAt: folder.updatedAt,
-
     };
   } catch (error) {
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      error.code === 11000
-    ) {
+    if (error instanceof Error && "code" in error && error.code === 11000) {
       throw new AppError(409, "Folder name already exists");
     }
 
@@ -75,11 +72,7 @@ export async function createFolder(
   }
 }
 
-
-export async function listFolders(
-  userId: string,
-  query: ListFoldersQuery
-) {
+export async function listFolders(userId: string, query: ListFoldersQuery) {
   // 1. Validate authenticated user ID
   if (!isObjectIdOrHexString(userId)) {
     throw new AppError(401, "Authentication required");
@@ -136,11 +129,7 @@ export async function listFolders(
   }));
 }
 
-
-export async function getFolderById(
-  userId: string,
-  folderId: string
-) {
+export async function getFolderById(userId: string, folderId: string) {
   // 1. Validate authenticated user ID
   if (!isObjectIdOrHexString(userId)) {
     throw new AppError(401, "Authentication required");
@@ -181,11 +170,10 @@ export async function getFolderById(
   };
 }
 
-
 export async function renameFolder(
   userId: string,
   folderId: string,
-  input: RenameFolderInput
+  input: RenameFolderInput,
 ) {
   // 1. Validate authenticated user ID
   if (!isObjectIdOrHexString(userId)) {
@@ -239,7 +227,7 @@ export async function renameFolder(
       {
         returnDocument: "after",
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedFolder) {
@@ -254,11 +242,7 @@ export async function renameFolder(
     };
   } catch (error) {
     // MongoDB unique index violation
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      error.code === 11000
-    ) {
+    if (error instanceof Error && "code" in error && error.code === 11000) {
       throw new AppError(409, "Folder name already exists");
     }
 
@@ -266,11 +250,10 @@ export async function renameFolder(
   }
 }
 
-
 export async function moveFolder(
   userId: string,
   folderId: string,
-  input: MoveFolderInput
+  input: MoveFolderInput,
 ) {
   // 1. Validate IDs
   if (!isObjectIdOrHexString(userId)) {
@@ -328,7 +311,7 @@ export async function moveFolder(
     if (currentId === folder._id.toString()) {
       throw new AppError(
         400,
-        "Cannot move a folder into itself or its descendant"
+        "Cannot move a folder into itself or its descendant",
       );
     }
 
@@ -344,10 +327,7 @@ export async function moveFolder(
     }).select("parentId");
 
     if (!parent) {
-      throw new AppError(
-        404,
-        "Destination folder not found"
-      );
+      throw new AppError(404, "Destination folder not found");
     }
 
     cursor = parent.parentId;
@@ -367,14 +347,11 @@ export async function moveFolder(
       {
         returnDocument: "after",
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedFolder) {
-      throw new AppError(
-        409,
-        "Folder changed during move. Please retry"
-      );
+      throw new AppError(409, "Folder changed during move. Please retry");
     }
 
     return {
@@ -384,27 +361,18 @@ export async function moveFolder(
       updatedAt: updatedFolder.updatedAt,
     };
   } catch (error) {
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      error.code === 11000
-    ) {
-      throw new AppError(
-        409,
-        "Folder name already exists at destination"
-      );
+    if (error instanceof Error && "code" in error && error.code === 11000) {
+      throw new AppError(409, "Folder name already exists at destination");
     }
 
     throw error;
   }
 }
 
-
 export async function deleteFolder(
   userId: string,
-  folderId: string
+  folderId: string,
 ): Promise<void> {
-
   // 1. Validate authenticated user ID
   if (!isObjectIdOrHexString(userId)) {
     throw new AppError(401, "Authentication required");
@@ -443,10 +411,16 @@ export async function deleteFolder(
   });
 
   if (hasChildren) {
-    throw new AppError(
-      409,
-      "Cannot delete a folder containing subfolders"
-    );
+    throw new AppError(409, "Cannot delete a folder containing subfolders");
+  }
+
+  const hasFiles = await File.exists({
+    folderId: folder._id,
+    ownerId,
+  });
+
+  if (hasFiles) {
+    throw new AppError(409, "Cannot delete a folder containing files");
   }
 
   // 6. Delete folder
